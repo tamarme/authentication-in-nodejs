@@ -1,6 +1,15 @@
-const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const connection = require('./database');
-const User = connection.models.User;
+const User = require('../models/User');
 
-// TODO: passport.use();
+const verifyCallback = async (username, password, done) => {
+    const user = await User.findOne({ username: username });
+    if (!user) return done(null, false);
+
+    const isValid = validPassword(password, user.hash, user.salt);
+    if (isValid) return done(null, user);
+    else return done(null, false);
+}
+
+const strategy = new LocalStrategy(verifyCallback);
+
+module.exports = strategy;
